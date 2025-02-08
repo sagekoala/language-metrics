@@ -1,0 +1,6 @@
+# Ignore virtual environment folder
+/language_metrics_env/
+
+# Ignore .env 
+.env
+
