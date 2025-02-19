@@ -4,4 +4,8 @@
 # Ignore .env 
 .env
 
+# Ignore __pycache__ directory
+./flask_backend/__pycache__
+
+
 
