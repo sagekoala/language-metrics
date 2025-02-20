@@ -94,6 +94,33 @@ def index():
 
     return jsonify({"error": "Couldn't return data"}), 400
 
+@app.route("/metrics")
+def metrics():
+    '''Returns data from database to popup.js
+    Note: duration stored in db as seconds, conversion to minutes made accordingly below'''
+
+    # Connect to db
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT SUM(duration) FROM videos WHERE timestamp >= datetime('now', '-7 days')")
+    total_minutes_7_days = (cursor.fetchone()[0] // 60) or 0
+
+    print(total_minutes_7_days)
+    
+    # Get total minutes watched all time
+    cursor.execute("SELECT SUM(duration) FROM videos")
+    total_minutes_all_time = (cursor.fetchone()[0] // 60) or 0
+
+    print(total_minutes_all_time)
+
+    target_language = "Spanish"
+
+    conn.close()
+
+    return jsonify({'total_minutes_7_days': total_minutes_7_days,
+        'total_minutes_all_time': total_minutes_all_time,
+        'target_language': target_language})
+
 # Helper function
 def update_database(video_data):
 
