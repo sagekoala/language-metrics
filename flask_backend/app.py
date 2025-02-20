@@ -1,4 +1,5 @@
 from dotenv import load_dotenv
+from datetime import datetime
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import os
@@ -20,7 +21,10 @@ def index():
 
     if request.method == "POST":
 
-        video_id = request.get_json()['videoId']
+        json_data = request.get_json()
+        video_id = json_data['videoId']
+        timestamp = datetime.strptime(json_data['timestamp'], "%m/%d/%Y, %I:%M:%S %p")
+
         if not video_id:
             return jsonify({"error": "Missing videoId parameter"}), 400
 
@@ -52,6 +56,7 @@ def index():
             duration = content_details['duration']
 
             # Print to server 
+            print(f"Viewed at: {str(timestamp)}")
             print(title)
             print(language)
             print(duration)
