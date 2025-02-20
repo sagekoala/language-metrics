@@ -2,8 +2,9 @@
 // to extract video info from YouTube API to include title, audio language, duration
 chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
     if (changeInfo['url'] && changeInfo['url'].includes("youtube.com/watch")) {
-        const videoId = (changeInfo['url'].split("v="))[1];
-        console.log(videoId);    
+        const url = new URL(changeInfo.url);
+        const videoId = url.searchParams.get("v");
+        console.log(`Extracted video ID: ${videoId}`);    
         
         // Fetch YouTube API data from Flask server
         const sendDataToBackend = async (data) => {
@@ -24,7 +25,7 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
         };
         
         // Example usage
-        sendDataToBackend({ videoId: videoId });
+        sendDataToBackend({ 'videoId': videoId });
     }
 })
 
