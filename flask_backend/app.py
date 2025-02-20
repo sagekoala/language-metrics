@@ -1,8 +1,9 @@
 from dotenv import load_dotenv
 from datetime import datetime
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, redirect
 from flask_cors import CORS
 import os
+import re
 import requests
 
 # Load environmental variables
@@ -12,7 +13,7 @@ load_dotenv()
 YOUTUBE_API_KEY = os.getenv('YOUTUBE_API_KEY')
 YOUTUBE_API_URL = "https://www.googleapis.com/youtube/v3/videos"
 
-## Instance of app, CORS to enable communication with chrome extension
+# Instance of app, CORS to enable communication with chrome extension
 app = Flask(__name__)
 CORS(app)
 
@@ -28,7 +29,7 @@ def index():
         if not video_id:
             return jsonify({"error": "Missing videoId parameter"}), 400
 
-        ## Make API request to YouTube
+        # Make API request to YouTube
         params = {
             'part': ['snippet','contentDetails'],  # You can adjust based on what you need
             'id': video_id,
@@ -60,9 +61,22 @@ def index():
             print(title)
             print(language)
             print(duration)
+            
+            # Need to convert duration to seconds
+            # Parse ISO 8601 duration format (handles hours, minutes, seconds)
+            duration_match = re.match(r'PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?', duration)
+            hours = int(duration_match.group(1)) if duration_match.group(1) else 0
+            minutes = int(duration_match.group(2)) if duration_match.group(2) else 0
+            seconds = int(duration_match.group(3)) if duration_match.group(3) else 0
+            duration = (hours * 3600) + (minutes * 60) + seconds
 
-            return jsonify({ "title": title,
+            print(duration)
+
+            video_data = { "title": title,
                             "language": language,
-                            "duration": duration })
+                            "duration": duration }
+            
+            return jsonify(video_data)
 
     return jsonify({"error": "Couldn't return data"}), 400
+
