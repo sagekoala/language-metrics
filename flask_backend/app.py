@@ -5,6 +5,7 @@ from flask_cors import CORS
 import os
 import re
 import requests
+import sqlite3
 
 # Load environmental variables
 load_dotenv()
@@ -16,6 +17,13 @@ YOUTUBE_API_URL = "https://www.googleapis.com/youtube/v3/videos"
 # Instance of app, CORS to enable communication with chrome extension
 app = Flask(__name__)
 CORS(app)
+
+# Helper function to get a connection to the database
+def get_db():
+    # Connect to database
+    conn = sqlite3.connect("video_logs.db")
+    conn.row_factory = sqlite3.Row
+    return conn
 
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -60,7 +68,6 @@ def index():
             print(f"Viewed at: {str(timestamp)}")
             print(title)
             print(language)
-            print(duration)
             
             # Need to convert duration to seconds
             # Parse ISO 8601 duration format (handles hours, minutes, seconds)
@@ -72,11 +79,46 @@ def index():
 
             print(duration)
 
-            video_data = { "title": title,
-                            "language": language,
-                            "duration": duration }
+            video_data = { 
+                "title": title,
+                "duration": duration,
+                "language": language,
+                "timestamp": timestamp 
+            }
+            
+            # If language is target language, update database
+            if 'es' in video_data['language']:
+                return update_database(video_data)
             
             return jsonify(video_data)
 
     return jsonify({"error": "Couldn't return data"}), 400
 
+# Helper function
+def update_database(video_data):
+
+    # Update database here with the current video data
+    print(f"Updating database with: {video_data}")
+
+    # Connect to database
+    conn = get_db()
+    if not conn:
+        return jsonify({"error": "Failed to connect to database"}), 500
+    
+    try:
+
+        # Create cursor object, execute query
+        cursor = conn.cursor() 
+        cursor.execute(
+            "INSERT INTO videos(title, duration, language, timestamp) VALUES(?, ?, ?, ?)",
+            [video_data['title'], video_data['duration'], video_data['language'], video_data['timestamp']]
+        )
+        
+        conn.commit()
+        return jsonify({"message": "Video logged successfully"}), 201
+
+    except sqlite3.Error as e:
+        return jsonify({"error": f"Database error: {e}"}), 500
+    
+    finally:
+        conn.close()
