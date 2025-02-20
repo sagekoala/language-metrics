@@ -3,9 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YouTube Language Metrics</title>
+    <title>Language Learning Metrics</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            width: 250px;
+            padding: 10px;
+        }
+        h1 {
+            font-size: 20px;
+        }
+        p {
+            font-size: 16px;
+        }
+    </style>
 </head>
 <body>
-    <p>Service worker is monitoring for YouTube activity in your "target language"!</p>
+    <h1>Language Learning Metrics</h1>
+    <div id="metrics">
+        <p><strong>Loading metrics...</strong></p>
+    </div>
+    <script src="./popup.js"></script>
 </body>
 </html>
