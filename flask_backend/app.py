@@ -1,6 +1,6 @@
 from dotenv import load_dotenv
 from datetime import datetime
-from flask import Flask, request, jsonify, redirect
+from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 import os
 import re
@@ -102,24 +102,59 @@ def metrics():
     # Connect to db
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute("SELECT SUM(duration) FROM videos WHERE timestamp >= datetime('now', '-7 days')")
-    total_minutes_7_days = (cursor.fetchone()[0] // 60) or 0
+    
+    # Query for yesterday's minutes (local time): 00:00:00 to 23:59:59 yesterday
+    cursor.execute("""
+        SELECT SUM(duration)
+        FROM videos
+        WHERE timestamp >= datetime('now', '-1 day', 'start of day', 'localtime')
+        AND timestamp < datetime('now', 'start of day', 'localtime')
+    """)
+    yesterday_minutes = (cursor.fetchone()[0] or 0) // 60
 
-    print(total_minutes_7_days)
+    # Query for today's minutes (local time): 00:00:00 to 23:59:59 today
+    cursor.execute("""
+        SELECT SUM(duration)
+        FROM videos
+        WHERE timestamp >= datetime('now', 'start of day', 'localtime')
+        AND timestamp < datetime('now', '+1 day', 'start of day', 'localtime')
+    """)
+    today_minutes = (cursor.fetchone()[0] or 0) // 60
     
     # Get total minutes watched all time
     cursor.execute("SELECT SUM(duration) FROM videos")
     total_minutes_all_time = (cursor.fetchone()[0] // 60) or 0
-
-    print(total_minutes_all_time)
-
+    
     target_language = "Spanish"
+    conn.close()
+
+    return jsonify({'yesterday_minutes': yesterday_minutes,
+        'today_minutes': today_minutes,
+        'total_minutes_all_time': total_minutes_all_time,
+        'target_language': target_language})
+
+@app.route("/history")
+def history():
+    '''Return watch (listening) history'''
+    # Connect to db
+    conn = get_db()
+    cursor = conn.cursor()
+
+    # Query history
+    cursor.execute("SELECT * FROM videos")
+    history = cursor.fetchall()
+
+    # Query totals
+    cursor.execute("SELECT SUM(duration) FROM videos")
+    total_seconds = cursor.fetchone()[0] or 0
+    total_minutes = total_seconds // 60
 
     conn.close()
 
-    return jsonify({'total_minutes_7_days': total_minutes_7_days,
-        'total_minutes_all_time': total_minutes_all_time,
-        'target_language': target_language})
+    print(total_minutes)
+
+    return render_template('history.html', history=history, total_minutes=total_minutes)
+
 
 # Helper function
 def update_database(video_data):
