@@ -10,6 +10,8 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
 
         // Record timestamp at time of view
         const timestamp = Date.now();
+
+        console.log(new Date(timestamp).toLocaleDateString());
         
         // Fetch YouTube API data from Flask server
         const sendDataToBackend = async (data) => {
