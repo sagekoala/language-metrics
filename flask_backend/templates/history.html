@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Watch History</title>
+</head>
+<body>
+    <h1>Your Watch History</h1>
+
+    <table border="1">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Title</th>
+                <th>Duration</th>
+                <th>Language</th>
+                <th>Timestamp</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for log in history %}
+                <tr>
+                    <td>{{ log.id }}</td>
+                    <td>{{ log.title }}</td>
+                    <td>{{ log.duration // 60 }} minutes {{ log.duration % 60 }} seconds</td>
+                    <td>{{ log.language }}</td>
+                    <td>{{ log.timestamp }}</td>
+                </tr>
+            {% endfor %}
+            <tr>
+                <td></td>
+                <td><strong>Total:</strong></td>
+                <td>{{ total_minutes // 60 }} hours {{ total_minutes % 60 }} minutes</td>
+                <td></td>
+                <td></td>
+            </tr>
+        </tbody>
+    </table>
+        
+</body>
+</html>
